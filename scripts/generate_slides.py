@@ -32,12 +32,28 @@ MODEL = "models/gemini-3.1-flash-image-preview"
 API_URL = "https://generativelanguage.googleapis.com/v1beta/{model}:generateContent"
 
 
-def build_intro_prompt(date_str: str, logo_b64: str | None, reference_b64: str | None = None, reference_mime: str = "image/png") -> list:
+def build_intro_prompt(date_str: str, logo_b64: str | None,
+                       reference_b64: str | None = None, reference_mime: str = "image/png",
+                       reference_url: str | None = None) -> list:
     """Return the parts list for the intro slide request."""
     parts = []
 
+    if reference_url:
+        # URL mode: let Gemini fetch the image directly — no local download needed.
+        parts.append({
+            "fileData": {
+                "mimeType": "image/png",
+                "fileUri": reference_url,
+            }
+        })
+        parts.append({"text": f"""Recreate this slide EXACTLY as shown in the reference image.
+Change ONLY the date text to "{date_str}".
+Keep everything else pixel-perfect: layout, fonts, font weights, font sizes, colours, logo, spacing, horizontal rules, and all other text.
+OUTPUT: square PNG, 1200×1200 px."""})
+        return parts
+
     if reference_b64:
-        # Reference-image mode: ask Gemini to recreate the slide exactly, only updating the date.
+        # Inline base64 mode (local file).
         parts.append({
             "inline_data": {
                 "mime_type": reference_mime,
@@ -186,11 +202,15 @@ def main():
     else:
         print("[INFO] No logo file found — intro slide will omit logo image", file=sys.stderr)
 
-    # Load reference image if available
+    # Load reference image if available (file path or URL)
     reference_b64 = None
     reference_mime = "image/png"
+    reference_url = None
     ref_path = args.reference_image
-    if ref_path and os.path.exists(ref_path):
+    if ref_path and ref_path.startswith(("http://", "https://")):
+        reference_url = ref_path
+        print(f"[OK] Reference image URL: {ref_path}", file=sys.stderr)
+    elif ref_path and os.path.exists(ref_path):
         ext = Path(ref_path).suffix.lower()
         reference_mime = "image/jpeg" if ext in (".jpg", ".jpeg") else "image/png"
         with open(ref_path, "rb") as f:
@@ -201,7 +221,7 @@ def main():
 
     # Slide 1 — intro
     print("Generating slide_1 (intro)…", file=sys.stderr)
-    parts = build_intro_prompt(date_display, logo_b64, reference_b64, reference_mime)
+    parts = build_intro_prompt(date_display, logo_b64, reference_b64, reference_mime, reference_url)
     img = call_gemini(api_key, parts)
     if img:
         out_path = os.path.join(args.out, "slide_1.png")
