@@ -1,0 +1,95 @@
+{
+  "fetched_at": "2026-04-15T13:00:10.349529+00:00",
+  "since": "2026-04-14T13:00:09Z",
+  "accounts_empty": [
+    "techhalla",
+    "HenryCrochemore",
+    "rubenhassid",
+    "minchoi",
+    "mreflow",
+    "sama",
+    "dr_cintas",
+    "RoundtableSpace",
+    "AiBreakfast",
+    "heyrobinai",
+    "PhilKiel",
+    "AmericanutopiaX",
+    "akshay_pachaar",
+    "AdityaJiRathore",
+    "heynavtoor",
+    "OfficialLoganK",
+    "r0ck3t23"
+  ],
+  "errors": [
+    {
+      "account": "techhalla",
+      "error": "403 Client Error: Forbidden for url: https://api.twitter.com/2/tweets/search/recent?query=from%3Atechhalla+-is%3Aretweet+-is%3Areply&start_time=2026-04-14T13%3A00%3A09Z&max_results=20&tweet.fields=public_metrics%2Ccreated_at%2Cauthor_id%2Centities"
+    },
+    {
+      "account": "HenryCrochemore",
+      "error": "403 Client Error: Forbidden for url: https://api.twitter.com/2/tweets/search/recent?query=from%3AHenryCrochemore+-is%3Aretweet+-is%3Areply&start_time=2026-04-14T13%3A00%3A09Z&max_results=20&tweet.fields=public_metrics%2Ccreated_at%2Cauthor_id%2Centities"
+    },
+    {
+      "account": "rubenhassid",
+      "error": "403 Client Error: Forbidden for url: https://api.twitter.com/2/tweets/search/recent?query=from%3Arubenhassid+-is%3Aretweet+-is%3Areply&start_time=2026-04-14T13%3A00%3A09Z&max_results=20&tweet.fields=public_metrics%2Ccreated_at%2Cauthor_id%2Centities"
+    },
+    {
+      "account": "minchoi",
+      "error": "403 Client Error: Forbidden for url: https://api.twitter.com/2/tweets/search/recent?query=from%3Aminchoi+-is%3Aretweet+-is%3Areply&start_time=2026-04-14T13%3A00%3A09Z&max_results=20&tweet.fields=public_metrics%2Ccreated_at%2Cauthor_id%2Centities"
+    },
+    {
+      "account": "mreflow",
+      "error": "403 Client Error: Forbidden for url: https://api.twitter.com/2/tweets/search/recent?query=from%3Amreflow+-is%3Aretweet+-is%3Areply&start_time=2026-04-14T13%3A00%3A09Z&max_results=20&tweet.fields=public_metrics%2Ccreated_at%2Cauthor_id%2Centities"
+    },
+    {
+      "account": "sama",
+      "error": "403 Client Error: Forbidden for url: https://api.twitter.com/2/tweets/search/recent?query=from%3Asama+-is%3Aretweet+-is%3Areply&start_time=2026-04-14T13%3A00%3A09Z&max_results=20&tweet.fields=public_metrics%2Ccreated_at%2Cauthor_id%2Centities"
+    },
+    {
+      "account": "dr_cintas",
+      "error": "403 Client Error: Forbidden for url: https://api.twitter.com/2/tweets/search/recent?query=from%3Adr_cintas+-is%3Aretweet+-is%3Areply&start_time=2026-04-14T13%3A00%3A09Z&max_results=20&tweet.fields=public_metrics%2Ccreated_at%2Cauthor_id%2Centities"
+    },
+    {
+      "account": "RoundtableSpace",
+      "error": "403 Client Error: Forbidden for url: https://api.twitter.com/2/tweets/search/recent?query=from%3ARoundtableSpace+-is%3Aretweet+-is%3Areply&start_time=2026-04-14T13%3A00%3A09Z&max_results=20&tweet.fields=public_metrics%2Ccreated_at%2Cauthor_id%2Centities"
+    },
+    {
+      "account": "AiBreakfast",
+      "error": "403 Client Error: Forbidden for url: https://api.twitter.com/2/tweets/search/recent?query=from%3AAiBreakfast+-is%3Aretweet+-is%3Areply&start_time=2026-04-14T13%3A00%3A09Z&max_results=20&tweet.fields=public_metrics%2Ccreated_at%2Cauthor_id%2Centities"
+    },
+    {
+      "account": "heyrobinai",
+      "error": "403 Client Error: Forbidden for url: https://api.twitter.com/2/tweets/search/recent?query=from%3Aheyrobinai+-is%3Aretweet+-is%3Areply&start_time=2026-04-14T13%3A00%3A09Z&max_results=20&tweet.fields=public_metrics%2Ccreated_at%2Cauthor_id%2Centities"
+    },
+    {
+      "account": "PhilKiel",
+      "error": "403 Client Error: Forbidden for url: https://api.twitter.com/2/tweets/search/recent?query=from%3APhilKiel+-is%3Aretweet+-is%3Areply&start_time=2026-04-14T13%3A00%3A09Z&max_results=20&tweet.fields=public_metrics%2Ccreated_at%2Cauthor_id%2Centities"
+    },
+    {
+      "account": "AmericanutopiaX",
+      "error": "403 Client Error: Forbidden for url: https://api.twitter.com/2/tweets/search/recent?query=from%3AAmericanutopiaX+-is%3Aretweet+-is%3Areply&start_time=2026-04-14T13%3A00%3A09Z&max_results=20&tweet.fields=public_metrics%2Ccreated_at%2Cauthor_id%2Centities"
+    },
+    {
+      "account": "akshay_pachaar",
+      "error": "403 Client Error: Forbidden for url: https://api.twitter.com/2/tweets/search/recent?query=from%3Aakshay_pachaar+-is%3Aretweet+-is%3Areply&start_time=2026-04-14T13%3A00%3A09Z&max_results=20&tweet.fields=public_metrics%2Ccreated_at%2Cauthor_id%2Centities"
+    },
+    {
+      "account": "AdityaJiRathore",
+      "error": "403 Client Error: Forbidden for url: https://api.twitter.com/2/tweets/search/recent?query=from%3AAdityaJiRathore+-is%3Aretweet+-is%3Areply&start_time=2026-04-14T13%3A00%3A09Z&max_results=20&tweet.fields=public_metrics%2Ccreated_at%2Cauthor_id%2Centities"
+    },
+    {
+      "account": "heynavtoor",
+      "error": "403 Client Error: Forbidden for url: https://api.twitter.com/2/tweets/search/recent?query=from%3Aheynavtoor+-is%3Aretweet+-is%3Areply&start_time=2026-04-14T13%3A00%3A09Z&max_results=20&tweet.fields=public_metrics%2Ccreated_at%2Cauthor_id%2Centities"
+    },
+    {
+      "account": "OfficialLoganK",
+      "error": "403 Client Error: Forbidden for url: https://api.twitter.com/2/tweets/search/recent?query=from%3AOfficialLoganK+-is%3Aretweet+-is%3Areply&start_time=2026-04-14T13%3A00%3A09Z&max_results=20&tweet.fields=public_metrics%2Ccreated_at%2Cauthor_id%2Centities"
+    },
+    {
+      "account": "r0ck3t23",
+      "error": "403 Client Error: Forbidden for url: https://api.twitter.com/2/tweets/search/recent?query=from%3Ar0ck3t23+-is%3Aretweet+-is%3Areply&start_time=2026-04-14T13%3A00%3A09Z&max_results=20&tweet.fields=public_metrics%2Ccreated_at%2Cauthor_id%2Centities"
+    }
+  ],
+  "tweet_count": 0,
+  "tweets": []
+}

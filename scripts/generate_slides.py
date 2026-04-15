@@ -1,217 +1,204 @@
 #!/usr/bin/env python3
 """
-LaunchBox Daily Carousel — Slide Generator
-Generates 6 square PNG slides using Pillow with brand colours.
+LaunchBox Daily Carousel — Gemini Slide Generator
+Generates 6 square PNG slides via Gemini 3.1 Flash Image Preview REST API.
+
+Usage:
+  python3 scripts/generate_slides.py \
+    --date YYYY-MM-DD \
+    --headlines path/to/headlines.json \
+    --out path/to/slides/ \
+    [--logo path/to/logo.png] \
+    [--api-key GEMINI_KEY]
 """
 
+import argparse
+import base64
 import json
 import os
 import sys
-import textwrap
+import time
+import requests
+from datetime import datetime
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont
 
-# ── Brand Palette ──────────────────────────────────────────────────────────────
-CLOUD_WHITE  = "#F7F2EC"
+# ── Brand palette (referenced verbatim in prompts) ─────────────────────────────
+CLOUD_WHITE   = "#F7F2EC"
 SIGNAL_ORANGE = "#F3701E"
-LAUNCH_BLUE  = "#4B607F"
-INK          = "#1A2838"
+LAUNCH_BLUE   = "#4B607F"
+INK           = "#1A2838"
 
-# ── Canvas ─────────────────────────────────────────────────────────────────────
-SIZE = (1200, 1200)
-PAD  = 72   # outer margin
+MODEL = "models/gemini-3.1-flash-image-preview"
+API_URL = "https://generativelanguage.googleapis.com/v1beta/{model}:generateContent"
 
-# ── Font paths ──────────────────────────────────────────────────────────────
-FONT_BOLD    = "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"
-FONT_REGULAR = "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
 
-def hex2rgb(h):
-    h = h.lstrip("#")
-    return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+def build_intro_prompt(date_str: str, logo_b64: str | None) -> list:
+    """Return the parts list for the intro slide request."""
+    parts = []
 
-def load_font(path, size):
-    try:
-        return ImageFont.truetype(path, size)
-    except Exception:
-        return ImageFont.load_default()
+    # Text prompt
+    parts.append({"text": f"""Create a square (1:1) social media carousel slide — editorial magazine style.
 
-def draw_rule(draw, y, color, thickness=3):
-    draw.rectangle([(PAD, y), (SIZE[0] - PAD, y + thickness)], fill=hex2rgb(color))
+BACKGROUND: solid {CLOUD_WHITE} (warm off-white)
+LAYOUT (top to bottom):
+1. Thin horizontal rule in {LAUNCH_BLUE} near top
+2. "TODAY'S TOP AI STORIES" — bold all-caps, large, {SIGNAL_ORANGE}
+3. "{date_str}" — medium weight, {INK}
+4. Another thin rule in {LAUNCH_BLUE}
+5. "Presented by:" — small label, {INK}
+6. The LaunchBox logo centred below (4:1 landscape ratio, original colours — do NOT recolour)
+7. Thin rule at bottom in {LAUNCH_BLUE}
 
-def draw_wrapped_text(draw, text, font, color, x, y, max_width, line_spacing=1.25):
-    """Draw text with word-wrap. Returns the y position after the last line."""
-    rgb = hex2rgb(color)
-    words = text.split()
-    lines = []
-    current = []
-    for word in words:
-        test = " ".join(current + [word])
-        bbox = font.getbbox(test)
-        w = bbox[2] - bbox[0]
-        if w <= max_width:
-            current.append(word)
-        else:
-            if current:
-                lines.append(" ".join(current))
-            current = [word]
-    if current:
-        lines.append(" ".join(current))
+STYLE: premium editorial sans-serif. Clean white space. No decorative elements beyond the horizontal rules. No watermarks.
+OUTPUT: square PNG, 1200×1200 px."""})
 
-    line_h = int((font.getbbox("Ag")[3] - font.getbbox("Ag")[1]) * line_spacing)
-    cur_y = y
-    for line in lines:
-        draw.text((x, cur_y), line, font=font, fill=rgb)
-        cur_y += line_h
-    return cur_y
+    # Attach logo image if available
+    if logo_b64:
+        parts.append({
+            "inline_data": {
+                "mime_type": "image/png",
+                "data": logo_b64,
+            }
+        })
 
-def make_intro_slide(out_path, date_str, logo_path=None):
-    img  = Image.new("RGB", SIZE, hex2rgb(CLOUD_WHITE))
-    draw = ImageDraw.Draw(img)
+    return parts
 
-    # Top rule
-    draw_rule(draw, PAD, LAUNCH_BLUE, thickness=5)
 
-    # "TODAY'S TOP AI STORIES" — big orange headline
-    f_headline = load_font(FONT_BOLD, 100)
-    lines_hl = ["TODAY'S TOP", "AI STORIES"]
-    y = 180
-    for line in lines_hl:
-        draw.text((PAD, y), line, font=f_headline, fill=hex2rgb(SIGNAL_ORANGE))
-        bbox = f_headline.getbbox(line)
-        y += int((bbox[3] - bbox[1]) * 1.15)
+def build_story_prompt(rank: int, total: int, headline: str, summary: str, motif: str) -> list:
+    return [{"text": f"""Create a square (1:1) social media carousel slide — editorial magazine style.
 
-    # Thin separator rule
-    draw_rule(draw, y + 20, LAUNCH_BLUE)
-    y += 60
+BACKGROUND: solid {CLOUD_WHITE} (warm off-white)
+LAYOUT:
+• Top: thin horizontal rule in {SIGNAL_ORANGE} (6 px)
+• Top-right corner: slide number "{rank}/{total}" — small, bold, {LAUNCH_BLUE}
+• Headline: "{headline}" — bold all-caps, large, {SIGNAL_ORANGE}. Max 2 lines.
+• Thin separator rule in {LAUNCH_BLUE}
+• Body: "{summary}" — regular weight, {INK}, 18-24pt equivalent
+• Centre area: tasteful visual motif — {motif}. Subtle, not distracting.
+• Bottom-left: "https://launchbox.space" — small, {LAUNCH_BLUE}
+• Bottom: thin horizontal rule in {LAUNCH_BLUE}
 
-    # Date line
-    f_date = load_font(FONT_REGULAR, 52)
-    draw.text((PAD, y), date_str, font=f_date, fill=hex2rgb(INK))
-    y += 80
+STYLE: bold editorial sans-serif. Clean. Premium. No clip-art. No gradients. No shadows.
+OUTPUT: square PNG, 1200×1200 px."""}]
 
-    # "Presented by:" label
-    f_label = load_font(FONT_REGULAR, 40)
-    draw.text((PAD, y + 20), "Presented by:", font=f_label, fill=hex2rgb(INK))
-    y += 80
 
-    # Logo area
-    if logo_path and os.path.exists(logo_path):
+def call_gemini(api_key: str, parts: list, retries: int = 3) -> bytes:
+    """Call Gemini image generation; return raw PNG bytes."""
+    url = API_URL.format(model=MODEL) + f"?key={api_key}"
+    payload = {
+        "contents": [{"parts": parts}],
+        "generationConfig": {"responseModalities": ["IMAGE", "TEXT"]},
+    }
+    for attempt in range(1, retries + 1):
         try:
-            logo = Image.open(logo_path).convert("RGBA")
-            # Scale to fit width keeping 4:1 aspect
-            target_w = SIZE[0] - PAD * 2
-            ratio = target_w / logo.width
-            target_h = int(logo.height * ratio)
-            logo = logo.resize((target_w, target_h), Image.LANCZOS)
-            img.paste(logo, (PAD, y + 10), logo)
-            y += target_h + 30
+            r = requests.post(url, json=payload, timeout=90)
+            r.raise_for_status()
+            data = r.json()
+
+            # Extract image from response
+            for candidate in data.get("candidates", []):
+                for part in candidate.get("content", {}).get("parts", []):
+                    if "inlineData" in part:
+                        raw = base64.b64decode(part["inlineData"]["data"])
+                        return raw
+                    if "image_url" in part:
+                        # data URL fallback
+                        url_data = part["image_url"].get("url", "")
+                        if "," in url_data:
+                            raw = base64.b64decode(url_data.split(",", 1)[1])
+                            return raw
+
+            print(f"  [WARN] No image in response: {json.dumps(data)[:300]}", file=sys.stderr)
+            return None
+
+        except requests.HTTPError as e:
+            print(f"  [WARN] Attempt {attempt}: HTTP {e.response.status_code} — {e.response.text[:200]}", file=sys.stderr)
+            if attempt < retries:
+                time.sleep(2 ** attempt)
         except Exception as e:
-            print(f"[WARN] Could not load logo: {e}", file=sys.stderr)
-            _draw_logo_text(draw, y)
-    else:
-        _draw_logo_text(draw, y)
-
-    # Bottom rule
-    draw_rule(draw, SIZE[1] - PAD - 5, LAUNCH_BLUE, thickness=5)
-
-    img.save(out_path, "PNG")
-    print(f"[OK] {out_path}")
-
-def _draw_logo_text(draw, y):
-    """Fallback: render LAUNCHBOX in brand style when no logo file is available."""
-    f_logo = load_font(FONT_BOLD, 110)
-    draw.text((PAD, y), "LAUNCHBOX", font=f_logo, fill=hex2rgb(LAUNCH_BLUE))
-
-def make_story_slide(out_path, rank, total, headline, summary, motif):
-    img  = Image.new("RGB", SIZE, hex2rgb(CLOUD_WHITE))
-    draw = ImageDraw.Draw(img)
-
-    # Top rule
-    draw_rule(draw, PAD, SIGNAL_ORANGE, thickness=6)
-
-    # Rank badge top-right
-    f_rank = load_font(FONT_BOLD, 42)
-    badge = f"{rank}/{total}"
-    bbox  = f_rank.getbbox(badge)
-    bw    = bbox[2] - bbox[0]
-    draw.text((SIZE[0] - PAD - bw, PAD - 50), badge, font=f_rank, fill=hex2rgb(LAUNCH_BLUE))
-
-    # Headline (Signal Orange, bold, large)
-    f_hl = load_font(FONT_BOLD, 90)
-    max_w = SIZE[0] - PAD * 2
-    y = PAD + 60
-    y = draw_wrapped_text(draw, headline, f_hl, SIGNAL_ORANGE, PAD, y, max_w, line_spacing=1.2)
-    y += 30
-
-    # Separator rule
-    draw_rule(draw, y, LAUNCH_BLUE)
-    y += 40
-
-    # Summary (Ink, regular)
-    f_sum = load_font(FONT_REGULAR, 52)
-    y = draw_wrapped_text(draw, summary, f_sum, INK, PAD, y, max_w, line_spacing=1.4)
-    y += 60
-
-    # Visual motif (small, italic-style — Launch Blue)
-    if motif:
-        f_motif = load_font(FONT_REGULAR, 36)
-        draw.text((PAD, y), f"Visual: {motif}", font=f_motif, fill=hex2rgb(LAUNCH_BLUE))
-
-    # Bottom rule
-    draw_rule(draw, SIZE[1] - PAD - 40, LAUNCH_BLUE, thickness=3)
-
-    # URL — bottom left, small, Launch Blue
-    f_url = load_font(FONT_REGULAR, 32)
-    draw.text((PAD, SIZE[1] - PAD), "https://launchbox.space",
-              font=f_url, fill=hex2rgb(LAUNCH_BLUE))
-
-    img.save(out_path, "PNG")
-    print(f"[OK] {out_path}")
+            print(f"  [WARN] Attempt {attempt}: {e}", file=sys.stderr)
+            if attempt < retries:
+                time.sleep(2 ** attempt)
+    return None
 
 
 def main():
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--date",      required=True)
-    parser.add_argument("--headlines", required=True)
-    parser.add_argument("--out",       required=True)
-    parser.add_argument("--logo",      default=None)
-    args = parser.parse_args()
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--date",      required=True)
+    ap.add_argument("--headlines", required=True)
+    ap.add_argument("--out",       required=True)
+    ap.add_argument("--logo",      default=None)
+    ap.add_argument("--api-key",   default=None)
+    args = ap.parse_args()
+
+    # Load API key
+    api_key = args.api_key
+    if not api_key:
+        cfg_path = Path(__file__).parent.parent / "config.json"
+        if cfg_path.exists():
+            api_key = json.loads(cfg_path.read_text()).get("gemini_api_key")
+    if not api_key:
+        print("[ERROR] No Gemini API key. Pass --api-key or set in config.json", file=sys.stderr)
+        sys.exit(1)
 
     with open(args.headlines) as f:
         data = json.load(f)
 
     os.makedirs(args.out, exist_ok=True)
 
-    # Slide 1 — intro
-    date_label = args.date  # e.g. "2026-04-15"
-    from datetime import datetime
+    # Format date nicely
     try:
-        dt = datetime.strptime(date_label, "%Y-%m-%d")
+        dt = datetime.strptime(args.date, "%Y-%m-%d")
         date_display = dt.strftime("%B %-d, %Y")
     except Exception:
-        date_display = date_label
+        date_display = args.date
 
-    make_intro_slide(
-        out_path  = os.path.join(args.out, "slide_1.png"),
-        date_str  = date_display,
-        logo_path = args.logo,
-    )
+    # Load logo if available
+    logo_b64 = None
+    if args.logo and os.path.exists(args.logo):
+        with open(args.logo, "rb") as f:
+            logo_b64 = base64.b64encode(f.read()).decode()
+        print(f"[OK] Logo loaded: {args.logo}", file=sys.stderr)
+    else:
+        print("[INFO] No logo file found — intro slide will omit logo image", file=sys.stderr)
+
+    # Slide 1 — intro
+    print("Generating slide_1 (intro)…", file=sys.stderr)
+    parts = build_intro_prompt(date_display, logo_b64)
+    img = call_gemini(api_key, parts)
+    if img:
+        out_path = os.path.join(args.out, "slide_1.png")
+        with open(out_path, "wb") as f:
+            f.write(img)
+        print(f"[OK] slide_1.png  ({len(img)//1024}KB)", file=sys.stderr)
+    else:
+        print("[FAIL] slide_1 — skipping", file=sys.stderr)
 
     # Slides 2-6 — stories
     stories = data["stories"]
-    total   = len(stories)
+    total = len(stories)
     for i, story in enumerate(stories, start=1):
-        make_story_slide(
-            out_path = os.path.join(args.out, f"slide_{i+1}.png"),
-            rank     = i,
-            total    = total,
-            headline = story["headline"],
-            summary  = story["summary"],
-            motif    = story.get("visual_motif", ""),
+        slide_num = i + 1
+        print(f"Generating slide_{slide_num} (story {i}/{total}: {story['headline']})…", file=sys.stderr)
+        parts = build_story_prompt(
+            rank    = i,
+            total   = total,
+            headline= story["headline"],
+            summary = story["summary"],
+            motif   = story.get("visual_motif", "abstract tech shapes"),
         )
+        img = call_gemini(api_key, parts)
+        if img:
+            out_path = os.path.join(args.out, f"slide_{slide_num}.png")
+            with open(out_path, "wb") as f:
+                f.write(img)
+            print(f"[OK] slide_{slide_num}.png  ({len(img)//1024}KB)", file=sys.stderr)
+        else:
+            print(f"[FAIL] slide_{slide_num} — skipping", file=sys.stderr)
+        time.sleep(1)  # brief pause between calls
 
-    print(f"\nAll {total + 1} slides written to {args.out}")
+    print(f"\nDone. Slides written to {args.out}", file=sys.stderr)
+
 
 if __name__ == "__main__":
     main()
