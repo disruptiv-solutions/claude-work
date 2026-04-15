@@ -32,10 +32,25 @@ MODEL = "models/gemini-3.1-flash-image-preview"
 API_URL = "https://generativelanguage.googleapis.com/v1beta/{model}:generateContent"
 
 
-def build_intro_prompt(date_str: str, logo_b64: str | None) -> list:
+def build_intro_prompt(date_str: str, logo_b64: str | None, reference_b64: str | None = None, reference_mime: str = "image/png") -> list:
     """Return the parts list for the intro slide request."""
     parts = []
 
+    if reference_b64:
+        # Reference-image mode: ask Gemini to recreate the slide exactly, only updating the date.
+        parts.append({
+            "inline_data": {
+                "mime_type": reference_mime,
+                "data": reference_b64,
+            }
+        })
+        parts.append({"text": f"""Recreate this slide EXACTLY as shown in the reference image.
+Change ONLY the date text to "{date_str}".
+Keep everything else pixel-perfect: layout, fonts, font weights, font sizes, colours, logo, spacing, horizontal rules, and all other text.
+OUTPUT: square PNG, 1200×1200 px."""})
+        return parts
+
+    # Fallback: build from scratch (original behaviour)
     logo_instruction = (
         "Reproduce the attached LaunchBox logo EXACTLY as provided — rocket-in-a-box icon on the left, "
         "'LaunchBox' wordmark on the right in its original orange/gradient colours. Do NOT redraw, recolour, or substitute text."
@@ -131,11 +146,13 @@ def call_gemini(api_key: str, parts: list, retries: int = 3) -> bytes:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--date",      required=True)
-    ap.add_argument("--headlines", required=True)
-    ap.add_argument("--out",       required=True)
-    ap.add_argument("--logo",      default=None)
-    ap.add_argument("--api-key",   default=None)
+    ap.add_argument("--date",            required=True)
+    ap.add_argument("--headlines",       required=True)
+    ap.add_argument("--out",             required=True)
+    ap.add_argument("--logo",            default=None)
+    ap.add_argument("--reference-image", default=None,
+                    help="Path to a previous title slide image. When supplied, Gemini recreates it exactly but updates the date.")
+    ap.add_argument("--api-key",         default=None)
     args = ap.parse_args()
 
     # Load API key
@@ -169,9 +186,22 @@ def main():
     else:
         print("[INFO] No logo file found — intro slide will omit logo image", file=sys.stderr)
 
+    # Load reference image if available
+    reference_b64 = None
+    reference_mime = "image/png"
+    ref_path = args.reference_image
+    if ref_path and os.path.exists(ref_path):
+        ext = Path(ref_path).suffix.lower()
+        reference_mime = "image/jpeg" if ext in (".jpg", ".jpeg") else "image/png"
+        with open(ref_path, "rb") as f:
+            reference_b64 = base64.b64encode(f.read()).decode()
+        print(f"[OK] Reference image loaded: {ref_path} ({reference_mime})", file=sys.stderr)
+    elif ref_path:
+        print(f"[WARN] Reference image not found at {ref_path} — falling back to text prompt", file=sys.stderr)
+
     # Slide 1 — intro
     print("Generating slide_1 (intro)…", file=sys.stderr)
-    parts = build_intro_prompt(date_display, logo_b64)
+    parts = build_intro_prompt(date_display, logo_b64, reference_b64, reference_mime)
     img = call_gemini(api_key, parts)
     if img:
         out_path = os.path.join(args.out, "slide_1.png")
