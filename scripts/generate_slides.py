@@ -31,6 +31,24 @@ INK           = "#1A2838"
 MODEL = "models/gemini-3.1-flash-image-preview"
 API_URL = "https://generativelanguage.googleapis.com/v1beta/{model}:generateContent"
 
+MAKE_WEBHOOK = "https://hook.us1.make.com/sf3xwjc9ibofkmwrrmcy9p1dfrsmqi66"
+
+
+def post_to_drive(webhook_url: str, date_str: str, filename: str, img_bytes: bytes) -> None:
+    """POST a single slide to the Make webhook → Google Drive pipeline."""
+    payload = {
+        "date": date_str,
+        "filename": filename,
+        "mime_type": "image/png",
+        "data": base64.b64encode(img_bytes).decode(),
+    }
+    try:
+        r = requests.post(webhook_url, json=payload, timeout=30)
+        r.raise_for_status()
+        print(f"  [Drive] {filename} queued ✓", file=sys.stderr)
+    except Exception as e:
+        print(f"  [Drive] WARNING — failed to queue {filename}: {e}", file=sys.stderr)
+
 
 def build_intro_prompt(date_str: str, logo_b64: str | None,
                        reference_b64: str | None = None, reference_mime: str = "image/png",
@@ -169,6 +187,8 @@ def main():
     ap.add_argument("--reference-image", default=None,
                     help="Path to a previous title slide image. When supplied, Gemini recreates it exactly but updates the date.")
     ap.add_argument("--api-key",         default=None)
+    ap.add_argument("--drive-webhook",   default=MAKE_WEBHOOK,
+                    help="Make.com webhook URL to upload slides to Google Drive (default: LaunchBox webhook).")
     args = ap.parse_args()
 
     # Load API key
@@ -228,6 +248,8 @@ def main():
         with open(out_path, "wb") as f:
             f.write(img)
         print(f"[OK] slide_1.png  ({len(img)//1024}KB)", file=sys.stderr)
+        if args.drive_webhook:
+            post_to_drive(args.drive_webhook, args.date, "slide_1.png", img)
     else:
         print("[FAIL] slide_1 — skipping", file=sys.stderr)
 
@@ -246,10 +268,13 @@ def main():
         )
         img = call_gemini(api_key, parts)
         if img:
-            out_path = os.path.join(args.out, f"slide_{slide_num}.png")
+            fname = f"slide_{slide_num}.png"
+            out_path = os.path.join(args.out, fname)
             with open(out_path, "wb") as f:
                 f.write(img)
-            print(f"[OK] slide_{slide_num}.png  ({len(img)//1024}KB)", file=sys.stderr)
+            print(f"[OK] {fname}  ({len(img)//1024}KB)", file=sys.stderr)
+            if args.drive_webhook:
+                post_to_drive(args.drive_webhook, args.date, fname, img)
         else:
             print(f"[FAIL] slide_{slide_num} — skipping", file=sys.stderr)
         time.sleep(1)  # brief pause between calls
