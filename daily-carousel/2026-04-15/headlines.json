@@ -1,0 +1,58 @@
+{
+  "date": "2026-04-15",
+  "stories": [
+    {
+      "rank": 1,
+      "headline": "SORA IS DEAD. WHAT NOW?",
+      "summary": "OpenAI confirms Sora app closes April 26 — Disney deal killed, $1M/day compute costs made it unsustainable.",
+      "visual_motif": "Film reel cracking apart with a plug being pulled, sparks fading to black",
+      "source_url": "https://the-decoder.com/openai-sets-two-stage-sora-shutdown-with-app-closing-april-2026-and-api-following-in-september/",
+      "source_account": "@OfficialLoganK",
+      "engagement_score": 9800,
+      "topic_token": "SORA"
+    },
+    {
+      "rank": 2,
+      "headline": "NVIDIA OPENS QUANTUM AI",
+      "summary": "NVIDIA's Ising — the world's first open-source AI models for quantum computing — drops on World Quantum Day.",
+      "visual_motif": "Glowing quantum circuit lattice with NVIDIA green nodes, open lock symbol overlaid",
+      "source_url": "https://nvidianews.nvidia.com/news/nvidia-launches-ising-the-worlds-first-open-ai-models-to-accelerate-the-path-to-useful-quantum-computers",
+      "source_account": "@AiBreakfast",
+      "engagement_score": 7400,
+      "topic_token": "NVIDIA_ISING"
+    },
+    {
+      "rank": 3,
+      "headline": "SEEDANCE 2.0 API IS LIVE",
+      "summary": "ByteDance's Seedance 2.0 — which beats Veo 3 and Runway Gen-4.5 — is now available via fal.ai API.",
+      "visual_motif": "Cinematic film strip morphing into a code block with a play button, confetti burst",
+      "source_url": "https://fal.ai/seedance-2.0",
+      "source_account": "@mreflow",
+      "engagement_score": 6900,
+      "topic_token": "SEEDANCE"
+    },
+    {
+      "rank": 4,
+      "headline": "AI LAWYERS WORK SOLO NOW",
+      "summary": "Harvey AI processes 700K legal tasks daily — its Spectre agent now drafts full memos and diligence reports autonomously.",
+      "visual_motif": "Minimalist legal scales balanced on a circuit board, gavel replaced by a microchip",
+      "source_url": "https://blockchain.news/news/harvey-ai-700k-daily-legal-tasks-agentic-platform",
+      "source_account": "@sama",
+      "engagement_score": 6200,
+      "topic_token": "HARVEY"
+    },
+    {
+      "rank": 5,
+      "headline": "META GOES CLOSED SOURCE",
+      "summary": "Meta's new Muse Spark model is proprietary — a striking pivot from the open-weights Llama strategy.",
+      "visual_motif": "Open book snapping shut with a lock clicking into place, Meta logo subtly in corner",
+      "source_url": "https://venturebeat.com/technology/goodbye-llama-meta-launches-new-proprietary-ai-model-muse-spark-first-since",
+      "source_account": "@minchoi",
+      "engagement_score": 5800,
+      "topic_token": "META_MUSE"
+    }
+  ],
+  "accounts_empty": [],
+  "fetch_method": "web_search_fallback",
+  "generated_at": "2026-04-15T12:00:00Z"
+}

@@ -1,0 +1,6 @@
+task_id: 86e0xezz8
+task_url: https://app.clickup.com/t/86e0xezz8
+title: 📱 Top AI Stories Carousel — April 15, 2026
+list: 📅 Content Calendar (Growth folder)
+created: 2026-04-15
+slides_attached: slide_1.png through slide_6.png (attached via GitHub raw URLs after push)
