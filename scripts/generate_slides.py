@@ -36,20 +36,27 @@ def build_intro_prompt(date_str: str, logo_b64: str | None) -> list:
     """Return the parts list for the intro slide request."""
     parts = []
 
-    # Text prompt
+    logo_instruction = (
+        "Reproduce the attached LaunchBox logo EXACTLY as provided — rocket-in-a-box icon on the left, "
+        "'LaunchBox' wordmark on the right in its original orange/gradient colours. Do NOT redraw, recolour, or substitute text."
+        if logo_b64 else
+        "Write 'LaunchBox' in bold {SIGNAL_ORANGE} as a placeholder (no logo image provided)."
+    )
+
     parts.append({"text": f"""Create a square (1:1) social media carousel slide — editorial magazine style.
 
-BACKGROUND: solid {CLOUD_WHITE} (warm off-white)
-LAYOUT (top to bottom):
-1. Thin horizontal rule in {LAUNCH_BLUE} near top
-2. "TODAY'S TOP AI STORIES" — bold all-caps, large, {SIGNAL_ORANGE}
-3. "{date_str}" — medium weight, {INK}
-4. Another thin rule in {LAUNCH_BLUE}
-5. "Presented by:" — small label, {INK}
-6. The LaunchBox logo centred below (4:1 landscape ratio, original colours — do NOT recolour)
-7. Thin rule at bottom in {LAUNCH_BLUE}
+BACKGROUND: solid {CLOUD_WHITE} (warm off-white, hex {CLOUD_WHITE})
 
-STYLE: premium editorial sans-serif. Clean white space. No decorative elements beyond the horizontal rules. No watermarks.
+LAYOUT (top to bottom, left-aligned text, generous padding ~80px each side):
+1. "TODAY'S AI LUNCH BREAK" — extra-bold condensed all-caps, very large (fills ~40% of slide height), {SIGNAL_ORANGE}, top-left, NO rule above it
+2. "{date_str}" — medium weight, {INK}, directly below the headline, same left margin
+3. Single thin horizontal rule in {LAUNCH_BLUE} below the date, full width
+4. Generous white space
+5. "Presented by:" — bold, centered, {INK}
+6. {logo_instruction} — centered, large, ~50% slide width
+7. Single thin horizontal rule in {LAUNCH_BLUE} near bottom
+
+STYLE: premium editorial sans-serif (condensed bold). Clean white space. No decorative elements beyond the two horizontal rules. No watermarks. No slide number.
 OUTPUT: square PNG, 1200×1200 px."""})
 
     # Attach logo image if available
