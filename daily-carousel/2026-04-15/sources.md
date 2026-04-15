@@ -1,9 +1,14 @@
 # Sources — April 15, 2026
 
 ## Fetch method
-X API unavailable (no bearer token configured) — web search fallback used.
-Accounts walked via WebSearch: @sama, @AiBreakfast, @mreflow, @minchoi, @OfficialLoganK
-Accounts skipped (browser fallback limit): @heyrobinai, @techhalla, @dr_cintas, @rubenhassid, @heynavtoor, @r0ck3t23, @PhilKiel, @HenryCrochemore, @RoundtableSpace, @akshay_pachaar, @AmericanutopiaX, @AdityaJiRathore
+X API bearer token present and authenticated. All 17 accounts returned **HTTP 403** — plan tier restriction. The `search/recent` endpoint (with `from:` operator) requires X API Basic tier ($100/month) or above. The bearer token is valid; upgrade the app subscription at developer.twitter.com to unlock.
+
+Web search fallback used for ranking.
+Accounts covered via WebSearch: @sama, @AiBreakfast, @mreflow, @minchoi, @OfficialLoganK
+Accounts not covered (fallback limit): @heyrobinai, @techhalla, @dr_cintas, @rubenhassid, @heynavtoor, @r0ck3t23, @PhilKiel, @HenryCrochemore, @RoundtableSpace, @akshay_pachaar, @AmericanutopiaX, @AdityaJiRathore
+
+## Slide generation
+Gemini (`gemini-3.1-flash-image-preview`) — all 6 slides regenerated with real AI image generation on 2026-04-15.
 
 ## Dedup check
 No prior carousel data found — dedup skipped (first run).
